@@ -9,6 +9,8 @@ h_path = 'C:\Thesycon\TUSBAudio_v1.22.0\EvaluationKit\DriverInstaller\release\DC
 main_windows_pos=[100 100 800 600];
 Z=zeros(128,1);
 f=logspace(1,log10(1500),128);
+fs=192000;
+
 
 s=tf([1 0],1);
 
@@ -29,11 +31,11 @@ s_BPQ = uicontrol(fh,'Style','slider',...
     'Position',[25 400 250 20],...
     'Callback',@slider_BPQ_callback);
 
-s_BPG = uicontrol(fh,'Style','slider',...
+s_BPR = uicontrol(fh,'Style','slider',...
     'Max',10,'Min',-10,'Value',0,...
     'SliderStep',[0.01 0.1],...
     'Position',[25 300 250 20],...
-    'Callback',@slider_BPG_callback);
+    'Callback',@slider_BPR_callback);
  
  s_Re = uicontrol(fh,'Style','slider',...
      'Max',10,'Min',-10,'Value',0,...
@@ -41,36 +43,47 @@ s_BPG = uicontrol(fh,'Style','slider',...
      'Position',[25 200 250 20],...
      'Callback',@slider_Re_callback);
  
+  s_LPf = uicontrol(fh,'Style','slider',...
+     'Max',1400,'Min',50,'Value',1000,...
+     'SliderStep',[0.01 0.1],...
+     'Position',[25 100 250 20],...
+     'Callback',@slider_LPf_callback);
  
  et_BPfc = uicontrol(fh,'Style','edit',...
-     'String',(['Fc=' num2str(get(s_BPfc,'Value')) ' Hz']),...
+     'String',sprintf('Fc=%.1f Hz',get(s_BPfc,'Value')),...
      'HorizontalAlignment','left',...
      'Position',[150 525 75 20],...
      'Callback',@edittext_BPfc_callback);
 
   et_BPQ = uicontrol(fh,'Style','edit',...
-     'String',(['Q=' num2str(get(s_BPQ,'Value'))]),...
+     'String',sprintf('Q=%.2f ',get(s_BPQ,'Value')),...
      'HorizontalAlignment','left',...
      'Position',[150 425 75 20],...
      'Callback',@edittext_BPQ_callback);
  
- et_BPG = uicontrol(fh,'Style','edit',...
-     'String',(['R=' num2str(get(s_BPG,'Value')) ' Ohm']),...
+ et_BPR = uicontrol(fh,'Style','edit',...
+     'String',sprintf('R=%.1f Ohm',get(s_BPR,'Value')),...
      'HorizontalAlignment','left',...
      'Position',[150 325 75 20],...
      'Callback',@edittext_BPG_callback);
  
  et_Re = uicontrol(fh,'Style','edit',...
-     'String',(['Re=' num2str(get(s_Re,'Value')) ' Ohm']),...
+     'String',sprintf('Re=%.1f Ohm',get(s_Re,'Value')),...
      'HorizontalAlignment','left',...
      'Position',[150 225 75 20],...
      'Callback',@edittext_Re_callback);
 
-  t_L = uicontrol(fh,'Style','text',...
-     'String','L(s)=1',...
+  et_LPf = uicontrol(fh,'Style','edit',...
+     'String',(sprintf('LP f=%.2f kHz',get(s_LPf,'Value')/1000)),...
      'HorizontalAlignment','left',...
-     'Position',[100 125 125 40],...
-     'Callback',@edittext_orm_callback);
+     'Position',[150 125 75 20],...
+     'Callback',@edittext_LPf_callback);
+ 
+  t_LC = uicontrol(fh,'Style','text',...
+     'HorizontalAlignment','left',...
+     'Position',[100 25 125 40],...
+     'Callback',@edittext_LC_mcallback);
+ 
  
  Fmax=1500;
  
@@ -85,30 +98,58 @@ s_BPG = uicontrol(fh,'Style','slider',...
  XTick=get(axes_Z,'XTick');set(axes_Z,'XTickLabel',num2str(XTick'));
  legend('Resistans','Reaktans','Impedans')
  title('Virtuell utimpedans')
+ updateL
+
  
 function slider_BPfc_callback(hObject,eventdata)
-set(et_BPfc,'String',['Fc=' num2str(round(10*get(s_BPfc,'Value'))*0.1) ' Hz']);
-end
-
-function slider_BPQ_callback(hObject,eventdata)
-set(et_BPQ,'String',['Q=' num2str(round(100*get(s_BPQ,'Value'))*0.01)]);
-end
-
-
-function slider_BPG_callback(hObject,eventdata)
-set(et_BPG,'String',['R=' num2str(round(10*get(s_BPG,'Value'))*0.1) ' Ohm']);
-end
-
-function slider_Re_callback(hObject,eventdata)
-Re=get(s_Re,'Value');
-set(et_Re,'String',['Re=' num2str(round(10*Re)*0.1) ' Ohm']);
+set(et_BPfc,'String',sprintf('Fc=%.1f Hz',get(s_BPfc,'Value')) );
 updateL;
 end
 
+function slider_BPQ_callback(hObject,eventdata)
+set(et_BPQ,'String',sprintf('Q=%.2f ',get(s_BPQ,'Value')) );
+updateL;
+end
+
+function slider_BPR_callback(hObject,eventdata)
+set(et_BPR,'String',sprintf('R=%.1f Ohm',get(s_BPR,'Value')) );
+updateL;
+end
+
+
+function slider_Re_callback(hObject,eventdata)
+set(et_Re,'String',sprintf('Re=%.1f Ohm',get(s_Re,'Value')) );
+updateL;
+end
+
+function slider_LPf_callback(hObject,eventdata)
+set(et_LPf,'String',sprintf('LP f=%.2f kHz',get(s_LPf,'Value')/1000) );
+updateL;
+end
+
+
 function updateL()
 Re=get(s_Re,'Value');   
-L=s/(1+s+s*s)+Re;
-[mag,phase] = bode(L,f/2/pi);
-%TO BE DONE set(plot_Z,'XData',[mag(:),mag(:),mag(:)]) cell!
+R=get(s_BPR,'Value');
+fc=get(s_BPfc,'Value');
+Q=get(s_BPQ,'Value');
+flp=get(s_LPf,'Value');
+wc=2*pi*fc;
+wlp=2*pi*flp;
+L=R/(wc*Q);
+C=1/(L*wc*wc);
+set(t_LC,'String',sprintf('L=%.2f mH\nC=%.2f uF',1000*L,C*10^6));
+
+if(abs(R)>0)
+    Z=Re+s*L/(1 +s*L/R + s*s*L*C);
+else
+    Z=tf(Re);
+end
+Z=Z*1/(s/wlp+1);
+[mag,phase] = bode(Z,f*2*pi);
+set(plot_Z(1),'YData',cos(pi/180*phase(:)).*mag(:));
+set(plot_Z(2),'YData',sin(pi/180*phase(:)).*mag(:));
+set(plot_Z(3),'YData',mag(:));
+
 end
 end
