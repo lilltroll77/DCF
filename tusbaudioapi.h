@@ -24,8 +24,394 @@ Fax: +49 3677 8462 18
 
 http://www.thesycon.de 
 */
- /*----------------- Functions --------------------------------------*/
+ #include <wchar.h> //added by MB
+ typedef unsigned int TUsbAudioStatus; //added by MB
+ typedef unsigned long* WCHAR; added by MB
+ #define TUSBAUDIO_MAX_STRDESC_STRLEN 200 //?? SIZE
+  
+ 
+/*TUsbAudioDeviceProperties 
 
+This structure provides static information associated with a USB audio device. 
+
+Deﬁnition */
+
+typedef struct /*tagTUsbAudioDeviceProperties*/{ 
+   unsigned int usbVendorId; 
+   unsigned int usbProductId; 
+   unsigned int usbRevisionId; 
+   WCHAR serialNumberString[TUSBAUDIO_MAX_STRDESC_STRLEN]; //UTF-32 or UTF-16??
+   WCHAR manufacturerString[TUSBAUDIO_MAX_STRDESC_STRLEN]; 
+   WCHAR productString[TUSBAUDIO_MAX_STRDESC_STRLEN]; 
+   unsigned int flags; 
+ } TUsbAudioDeviceProperties; 
+/*Members 
+
+usbVendorId 
+   Speciﬁes the USB vendor ID (VID) as reported by the device in the USB device descriptor. 
+
+usbProductId 
+   Speciﬁes the USB product ID (PID) as reported by the device in the USB device descriptor. 
+
+usbRevisionId 
+   Speciﬁes the revision code (bcdDevice) as reported by the device in the USB device descriptor. 
+
+serialNumberString[TUSBAUDIO_MAX_STRDESC_STRLEN] 
+   Contains the serial number string as reported by the device per string descriptor. If the device 
+   does not support a USB serial number then the string contains a device instance ID generated 
+   internally by Windows. This ﬁeld contains a sequence of UNICODE characters which is 
+   guaranteed to be terminated by a UNICODE null character. 
+
+manufacturerString[TUSBAUDIO_MAX_STRDESC_STRLEN] 
+   Contains the Manufacturer string as reported by the device per string descriptor. If the device 
+   does not support a Manufacturer string then this ﬁeld is set to an empty string. This ﬁeld 
+   contains a sequence of UNICODE characters which is guaranteed to be terminated by a 
+   UNICODE null character. 
+
+productString[TUSBAUDIO_MAX_STRDESC_STRLEN] 
+   Contains the Product string as reported by the device per string descriptor. If the device does 
+   not support a Product string then this ﬁeld is set to an empty string. This ﬁeld contains a 
+   sequence of UNICODE characters which is guaranteed to be terminated by a UNICODE null 
+   character. 
+
+flags 
+   Contains a set of ﬂags as a bitwise-or combination of the following constants. 
+
+   TUSBAUDIO_DEVPROP_FLAG_HIGH_SPEED_SUPPORTED 
+      If this ﬂag is set then the device is capable of USB high-speed mode. If this ﬂag is clear 
+      then the device supports USB full-speed mode only. 
+   TUSBAUDIO_DEVPROP_FLAG_HIGH_SPEED 
+      If this ﬂag is set then the device is currently connected to a high-speed USB port and works 
+      in high-speed mode. If this ﬂag is clear then the device is currently connected to a USB 
+      port which supports full-speed mode only. 
+   TUSBAUDIO_DEVPROP_FLAG_DFU_SUPPORTED 
+      If this ﬂag is set then the device supports device ﬁrmware upgrade (DFU). 
+   TUSBAUDIO_DEVPROP_FLAG_DSP_PLUGIN_PRESENT 
+      If this ﬂag is set then a DSP plugin is loaded for the device. 
+   TUSBAUDIO_DEVPROP_FLAG_AUDIOCLASS10_SUPPORTED 
+      If this ﬂag is set the device complies to USB Audio Class 1.0. 
+   TUSBAUDIO_DEVPROP_FLAG_AUDIOCLASS20_SUPPORTED 
+      If this ﬂag is set the device complies to USB Audio Class 2.0. 
+
+Comments 
+
+   An application can use the USB VID, PID and serial number information provided by this 
+   struct to unambiguously identify a particular device instance. 
+
+See Also 
+
+   TUSBAUDIO_GetDeviceProperties (page 18) */
+
+/*TUsbAudioClockSource 
+
+This structure provides detailed information on a speciﬁc Clock Source of the USB Audio 
+Function. 
+
+Deﬁnition */
+typedef struct /*tagTUsbAudioClockSource*/{ 
+   unsigned int clockSourceId; 
+   unsigned int clockSourceUnitId; 
+   unsigned int clockSelectorPinNumber; 
+   unsigned int clockIsValid; 
+   unsigned int sampleRate; 
+   WCHAR clockNameString[TUSBAUDIO_MAX_STRDESC_STRLEN]; 
+ } TUsbAudioClockSource; 
+/*Members 
+
+clockSourceId 
+   Contains the unique ID that unambiguously identiﬁes the clock source at the driver API. 
+
+   The ID values are driver-deﬁned. An application must not interpret the value. 
+
+clockSourceUnitId 
+   Contains the unit ID of the Clock Source entity within the audio function. 
+
+clockSelectorPinNumber 
+   Contains the zero-based index of the clock selector input pin where the clock selector is 
+   connected. 
+
+clockIsValid 
+   Speciﬁes the current state of the clock source (validity). 
+
+   This member will be set to 1 of the clock is stable or to zero otherwise. 
+
+sampleRate 
+   Current sample rate of the clock source, in samples per second. 
+
+   This member is only valid of clockIsValidis set to 1. 
+
+clockNameString[TUSBAUDIO_MAX_STRDESC_STRLEN] 
+   Zero-terminated wide character string that describes the clock source (taken from USB string 
+   descriptor). 
+
+See Also 
+
+   TUSBAUDIO_GetSupportedClockSources (page 25) 
+   TUSBAUDIO_GetCurrentClockSource (page 26) 
+   TUSBAUDIO_SetCurrentClockSource (page 27) */
+
+/*TUsbAudioStreamFormat 
+
+This structure provides information on a speciﬁc stream format supported by the device. 
+
+Deﬁnition */
+typedef struct /*tagTUsbAudioStreamFormat*/{ 
+   unsigned int formatId; 
+   unsigned int bitsPerSample; 
+   unsigned int numberOfChannels; 
+   WCHAR formatNameString[TUSBAUDIO_MAX_STRDESC_STRLEN]; 
+ } TUsbAudioStreamFormat; 
+/*Members 
+
+formatId 
+   Contains the unique ID that unambiguously identiﬁes the stream format at the driver API. 
+
+   The ID values are driver-deﬁned. An application must not interpret the value. 
+
+bitsPerSample 
+   Contains the number of valid bits per sample (16 or 24). 
+
+numberOfChannels 
+   Contains the number of audio channels covered by the stream format. 
+
+formatNameString[TUSBAUDIO_MAX_STRDESC_STRLEN] 
+   Zero-terminated wide character string that describes the stream format (taken from USB string 
+   descriptor). 
+
+See Also 
+
+   TUSBAUDIO_GetSupportedStreamFormats (page 28) 
+   TUSBAUDIO_GetCurrentStreamFormat (page 30) 
+   TUSBAUDIO_SetCurrentStreamFormat (page 31) */
+
+/*TUsbAudioChannelProperty 
+
+This structure provides information on a speciﬁc audio channel of the device. 
+
+Deﬁnition */
+typedef struct /*tagTUsbAudioChannelProperty*/{ 
+   unsigned int channelIndex; 
+   unsigned int isInput; 
+   unsigned int flags; 
+   unsigned char featureUnitId; 
+   unsigned char featureUnitLogicalChannel; 
+   short volumeRangeMin; 
+   short volumeRangeMax; 
+   unsigned short volumeRangeStep; 
+   WCHAR channelNameString[TUSBAUDIO_MAX_STRDESC_STRLEN]; 
+ } TUsbAudioChannelProperty; 
+/*Members 
+
+channelIndex 
+   Contains the zero-based index of the channel within the associated stream. 
+
+isInput 
+   Contains the channel direction. This member is set to one for input (record) channels and to 
+   zero for output (playback) channels. 
+
+flags 
+   Contains a set of ﬂags as a bitwise-or combination of the following constants. 
+
+   TUSBAUDIO_CHANPROP_FLAG_VOLUME_MAPPED 
+      If this ﬂag is set then the Windows Audio volume control for the channel is mapped to the 
+      feature unit speciﬁed in featureUnitId. 
+   TUSBAUDIO_CHANPROP_FLAG_MUTE_MAPPED 
+      If this ﬂag is set then the Windows Audio mute control for the channel is mapped to the 
+      feature unit speciﬁed in featureUnitId. 
+
+featureUnitId 
+   Contains the ID of the feature unit within the audio function that is used by Windows Audio to 
+   control volume and/or mute of the channel. 
+
+   This ID has to be used as entityIDwhen calling the private API to send volume or mute 
+   control requests for this channel to the device. 
+
+   The ID is valid only if one of TUSBAUDIO_CHANPROP_FLAG_VOLUME_MAPPEDor 
+   TUSBAUDIO_CHANPROP_FLAG_MUTE_MAPPEDis set in the flagsmember. 
+
+featureUnitLogicalChannel 
+   Contains the logical channel number within the feature unit that corresponds with the channel. 
+
+   This number has to be used as channelOrMixerControlwhen calling the private API to 
+   send volume or mute control requests for this channel to the device. 
+
+volumeRangeMin 
+   Contains the minimum volume value that is supported by the channel. 
+
+   This ﬁeld is only valid if TUSBAUDIO_CHANPROP_FLAG_VOLUME_MAPPEDis set in the 
+   flagsmember. 
+
+volumeRangeMax 
+   Contains the maximum volume value that is supported by the channel. 
+
+   This ﬁeld is only valid if TUSBAUDIO_CHANPROP_FLAG_VOLUME_MAPPEDis set in the 
+   flagsmember. 
+
+volumeRangeStep 
+   Contains the step size for volume values supported for the channel. 
+
+   This ﬁeld is only valid if TUSBAUDIO_CHANPROP_FLAG_VOLUME_MAPPEDis set in the 
+   flagsmember. 
+
+channelNameString[TUSBAUDIO_MAX_STRDESC_STRLEN] 
+   Zero-terminated wide character string that describes the channel. The channel name is taken 
+   from the USB string descriptor if available or generated internally otherwise. 
+
+Comments 
+
+   The values that are returned in volumeRangeMin, volumeRangeMaxand 
+   volumeRangeStepare in the range as deﬁned by the USB Audio Class speciﬁcation 
+   (-127.9961 decibels to +127.9961 decibels in 1/256 decibel steps). 
+
+See Also 
+
+   TUSBAUDIO_GetChannelProperties (page 32) 
+   TUSBAUDIO_AudioControlRequestGet (page 37) 
+   TUSBAUDIO_AudioControlRequestSet (page 35) */
+
+/*TUsbAudioNotifyEvent 
+
+This enumeration type deﬁnes constants that identify notiﬁcation event messages issued by the 
+device or the driver. 
+
+Deﬁnition */
+typedef enum tagTUsbAudioNotifyEvent{ 
+   NotifyEvent_SampleRateChanged, 
+   NotifyEvent_StreamFormatChanged, 
+   NotifyEvent_AcNodeInterrupt, 
+   NotifyEvent_VolumeChanged, 
+   NotifyEvent_MuteChanged 
+ } TUsbAudioNotifyEvent; 
+/*Entries 
+
+NotifyEvent_SampleRateChanged 
+   This event message is issued by the driver when the sample rate changes. This event belongs 
+   to the TUSBAUDIO_NOTIFY_CATEGORY_SAMPLE_RATE_CHANGEcategory. 
+
+   Data ﬁeld: No data ﬁeld is attached to this type of event. 
+
+NotifyEvent_StreamFormatChanged 
+   This event message is issued by the driver when the stream format changes. This event 
+   belongs to the TUSBAUDIO_NOTIFY_CATEGORY_STREAM_CHANGEcategory. 
+
+   Data ﬁeld: No data ﬁeld is attached to this type of event. 
+
+NotifyEvent_AcNodeInterrupt 
+   This event message is issued by an audio control node (unit) of the device. This event belongs 
+   to the TUSBAUDIO_NOTIFY_CATEGORY_AC_NODE_INTERRUPTcategory. 
+
+   Data ﬁeld: The data ﬁeld attached to this event contains the interrupt data message deﬁned by 
+   the USB audio class 2.0 speciﬁcation. The size of this message is 6 bytes. The data layout is 
+   deﬁned by the USB audio class 2.0 speciﬁcation. See also the 
+   T_UsbClsAudio20_AC_InterruptDataMessagestruct type deﬁned in 
+   tusb_cls_audio20.h. 
+
+NotifyEvent_VolumeChanged 
+   This event message is issued by the driver if the volume of a speciﬁc channel is changed 
+   through the Windows mixer API. For example, this happens if a user modiﬁes volume in the 
+   standard windows sound panel. This event belongs to the 
+   TUSBAUDIO_NOTIFY_CATEGORY_VOLUME_CHANGEcategory. 
+
+   Data ﬁeld: The data ﬁeld attached to this event contains a TUsbAudioNotifyVolumeChange 
+   structure. 
+
+NotifyEvent_MuteChanged 
+   This event message is issued by the driver if the mute state of a speciﬁc channel is changed 
+   through the Windows mixer API. For example, this happens if a user modiﬁes mute in the 
+   standard windows sound panel. This event belongs to the 
+   TUSBAUDIO_NOTIFY_CATEGORY_VOLUME_CHANGEcategory. 
+
+   Data ﬁeld: The data ﬁeld attached to this event contains a TUsbAudioNotifyVolumeChange 
+   structure. 
+
+Comments 
+
+   An application can ﬁlter event messages to be received by means of event categories. 
+   Categories are deﬁned by TUSBAUDIO_NOTIFY_CATEGORY_xxxconstants. See 
+   TUSBAUDIO_RegisterDeviceNotiﬁcation for more information. 
+
+See Also 
+
+   TUSBAUDIO_RegisterDeviceNotiﬁcation (page 19) 
+   TUSBAUDIO_ReadDeviceNotiﬁcation (page 21) 
+   TUsbAudioNotifyVolumeChange (page 66) */
+
+/*TUsbAudioDfuProcState 
+
+This enumeration type deﬁnes constants that indicate the current state of the DFU operation. 
+
+Deﬁnition */
+typedef enum tagTUsbAudioDfuProcState{ 
+   DfuProcState_Idle, 
+   DfuProcState_Initializing, 
+   DfuProcState_EnteringDfuMode, 
+   DfuProcState_InProgress, 
+   DfuProcState_EnteringAppMode, 
+   DfuProcState_Finished, 
+   DfuProcState_Failed 
+ } TUsbAudioDfuProcState; 
+/*Entries 
+
+DfuProcState_Idle 
+   No DFU operation is in progress. 
+
+DfuProcState_Initializing 
+   The DFU operation is about to start. 
+
+DfuProcState_EnteringDfuMode 
+   The device is entering DFU mode (DFU ﬁrmware is about to be started). 
+
+DfuProcState_InProgress 
+   The DFU operation is in progress. 
+
+DfuProcState_EnteringAppMode 
+   The device is entering APP mode (application is about to be started). 
+
+DfuProcState_Finished 
+   The DFU operation has completed successfully. 
+
+DfuProcState_Failed 
+   The DFU operation has completed with error. 
+
+Comments 
+
+   An application calls TUSBAUDIO_GetDfuStatus to query the current state of the DFU 
+   operation. 
+
+See Also 
+
+   TUSBAUDIO_GetDfuStatus (page 61) */
+
+/*TUsbAudioDeviceRunMode 
+
+This enumeration type deﬁnes constants that indicate the ﬁrmware that is currently running on 
+the device. 
+
+Deﬁnition */
+typedef enum tagTUsbAudioDeviceRunMode{ 
+   DeviceRunMode_APP, 
+   DeviceRunMode_DFU 
+ } TUsbAudioDeviceRunMode; 
+/*Entries 
+
+DeviceRunMode_APP 
+   The application ﬁrmware is running (APP mode). 
+
+DeviceRunMode_DFU 
+   The DFU ﬁrmware is running (DFU mode). 
+
+Comments 
+
+   An application calls TUSBAUDIO_GetDeviceUsbMode to query the ﬁrmware that is 
+   running on the device. 
+
+See Also 
+
+   TUSBAUDIO_GetDeviceUsbMode (page 48) */
+
+ /*----------------- Functions --------------------------------------*/
+   
+ 
 /*TUSBAUDIO_GetApiVersion 
 
 This function returns the current version number of the application programming interface (API) 
@@ -280,7 +666,7 @@ deviceIndex
 
 deviceHandle 
    Address of a caller-provided variable that will be set to the device instance handle if the 
-   function succeeds. If the function fails deviceHandlewill be set to NULLwhich is an 
+   function succeeds. If the function fails deviceHandlewill be set to NULL which is an 
    invalid handle value. 
 
 Return Value 
@@ -349,11 +735,11 @@ Query USB IDs and properties for a speciﬁc device.
 
 Deﬁnition*/ 
 
-   TUsbAudioStatus 
-   TUSBAUDIO_GetDeviceProperties( 
-      TUsbAudioHandle deviceHandle, 
-      TUsbAudioDeviceProperties* properties 
-       ); 
+   // TUsbAudioStatus 
+   // TUSBAUDIO_GetDeviceProperties( 
+      // TUsbAudioHandle deviceHandle, 
+      // TUsbAudioDeviceProperties* properties 
+       // ); 
 
 /*Parameters 
 
@@ -2108,381 +2494,3 @@ See Also
 
    TUSBAUDIO_GetDriverInfo (page 39) */
 
-/*TUsbAudioDeviceProperties 
-
-This structure provides static information associated with a USB audio device. 
-
-Deﬁnition */
-typedef struct tagTUsbAudioDeviceProperties{ 
-   unsigned int usbVendorId; 
-   unsigned int usbProductId; 
-   unsigned int usbRevisionId; 
-   WCHAR serialNumberString[TUSBAUDIO_MAX_STRDESC_STRLEN]; 
-   WCHAR manufacturerString[TUSBAUDIO_MAX_STRDESC_STRLEN]; 
-   WCHAR productString[TUSBAUDIO_MAX_STRDESC_STRLEN]; 
-   unsigned int flags; 
- } TUsbAudioDeviceProperties; 
-/*Members 
-
-usbVendorId 
-   Speciﬁes the USB vendor ID (VID) as reported by the device in the USB device descriptor. 
-
-usbProductId 
-   Speciﬁes the USB product ID (PID) as reported by the device in the USB device descriptor. 
-
-usbRevisionId 
-   Speciﬁes the revision code (bcdDevice) as reported by the device in the USB device descriptor. 
-
-serialNumberString[TUSBAUDIO_MAX_STRDESC_STRLEN] 
-   Contains the serial number string as reported by the device per string descriptor. If the device 
-   does not support a USB serial number then the string contains a device instance ID generated 
-   internally by Windows. This ﬁeld contains a sequence of UNICODE characters which is 
-   guaranteed to be terminated by a UNICODE null character. 
-
-manufacturerString[TUSBAUDIO_MAX_STRDESC_STRLEN] 
-   Contains the Manufacturer string as reported by the device per string descriptor. If the device 
-   does not support a Manufacturer string then this ﬁeld is set to an empty string. This ﬁeld 
-   contains a sequence of UNICODE characters which is guaranteed to be terminated by a 
-   UNICODE null character. 
-
-productString[TUSBAUDIO_MAX_STRDESC_STRLEN] 
-   Contains the Product string as reported by the device per string descriptor. If the device does 
-   not support a Product string then this ﬁeld is set to an empty string. This ﬁeld contains a 
-   sequence of UNICODE characters which is guaranteed to be terminated by a UNICODE null 
-   character. 
-
-flags 
-   Contains a set of ﬂags as a bitwise-or combination of the following constants. 
-
-   TUSBAUDIO_DEVPROP_FLAG_HIGH_SPEED_SUPPORTED 
-      If this ﬂag is set then the device is capable of USB high-speed mode. If this ﬂag is clear 
-      then the device supports USB full-speed mode only. 
-   TUSBAUDIO_DEVPROP_FLAG_HIGH_SPEED 
-      If this ﬂag is set then the device is currently connected to a high-speed USB port and works 
-      in high-speed mode. If this ﬂag is clear then the device is currently connected to a USB 
-      port which supports full-speed mode only. 
-   TUSBAUDIO_DEVPROP_FLAG_DFU_SUPPORTED 
-      If this ﬂag is set then the device supports device ﬁrmware upgrade (DFU). 
-   TUSBAUDIO_DEVPROP_FLAG_DSP_PLUGIN_PRESENT 
-      If this ﬂag is set then a DSP plugin is loaded for the device. 
-   TUSBAUDIO_DEVPROP_FLAG_AUDIOCLASS10_SUPPORTED 
-      If this ﬂag is set the device complies to USB Audio Class 1.0. 
-   TUSBAUDIO_DEVPROP_FLAG_AUDIOCLASS20_SUPPORTED 
-      If this ﬂag is set the device complies to USB Audio Class 2.0. 
-
-Comments 
-
-   An application can use the USB VID, PID and serial number information provided by this 
-   struct to unambiguously identify a particular device instance. 
-
-See Also 
-
-   TUSBAUDIO_GetDeviceProperties (page 18) */
-
-/*TUsbAudioClockSource 
-
-This structure provides detailed information on a speciﬁc Clock Source of the USB Audio 
-Function. 
-
-Deﬁnition */
-typedef struct tagTUsbAudioClockSource{ 
-   unsigned int clockSourceId; 
-   unsigned int clockSourceUnitId; 
-   unsigned int clockSelectorPinNumber; 
-   unsigned int clockIsValid; 
-   unsigned int sampleRate; 
-   WCHAR clockNameString[TUSBAUDIO_MAX_STRDESC_STRLEN]; 
- } TUsbAudioClockSource; 
-/*Members 
-
-clockSourceId 
-   Contains the unique ID that unambiguously identiﬁes the clock source at the driver API. 
-
-   The ID values are driver-deﬁned. An application must not interpret the value. 
-
-clockSourceUnitId 
-   Contains the unit ID of the Clock Source entity within the audio function. 
-
-clockSelectorPinNumber 
-   Contains the zero-based index of the clock selector input pin where the clock selector is 
-   connected. 
-
-clockIsValid 
-   Speciﬁes the current state of the clock source (validity). 
-
-   This member will be set to 1 of the clock is stable or to zero otherwise. 
-
-sampleRate 
-   Current sample rate of the clock source, in samples per second. 
-
-   This member is only valid of clockIsValidis set to 1. 
-
-clockNameString[TUSBAUDIO_MAX_STRDESC_STRLEN] 
-   Zero-terminated wide character string that describes the clock source (taken from USB string 
-   descriptor). 
-
-See Also 
-
-   TUSBAUDIO_GetSupportedClockSources (page 25) 
-   TUSBAUDIO_GetCurrentClockSource (page 26) 
-   TUSBAUDIO_SetCurrentClockSource (page 27) */
-
-/*TUsbAudioStreamFormat 
-
-This structure provides information on a speciﬁc stream format supported by the device. 
-
-Deﬁnition */
-typedef struct tagTUsbAudioStreamFormat{ 
-   unsigned int formatId; 
-   unsigned int bitsPerSample; 
-   unsigned int numberOfChannels; 
-   WCHAR formatNameString[TUSBAUDIO_MAX_STRDESC_STRLEN]; 
- } TUsbAudioStreamFormat; 
-/*Members 
-
-formatId 
-   Contains the unique ID that unambiguously identiﬁes the stream format at the driver API. 
-
-   The ID values are driver-deﬁned. An application must not interpret the value. 
-
-bitsPerSample 
-   Contains the number of valid bits per sample (16 or 24). 
-
-numberOfChannels 
-   Contains the number of audio channels covered by the stream format. 
-
-formatNameString[TUSBAUDIO_MAX_STRDESC_STRLEN] 
-   Zero-terminated wide character string that describes the stream format (taken from USB string 
-   descriptor). 
-
-See Also 
-
-   TUSBAUDIO_GetSupportedStreamFormats (page 28) 
-   TUSBAUDIO_GetCurrentStreamFormat (page 30) 
-   TUSBAUDIO_SetCurrentStreamFormat (page 31) */
-
-/*TUsbAudioChannelProperty 
-
-This structure provides information on a speciﬁc audio channel of the device. 
-
-Deﬁnition */
-typedef struct tagTUsbAudioChannelProperty{ 
-   unsigned int channelIndex; 
-   unsigned int isInput; 
-   unsigned int flags; 
-   unsigned char featureUnitId; 
-   unsigned char featureUnitLogicalChannel; 
-   short volumeRangeMin; 
-   short volumeRangeMax; 
-   unsigned short volumeRangeStep; 
-   WCHAR channelNameString[TUSBAUDIO_MAX_STRDESC_STRLEN]; 
- } TUsbAudioChannelProperty; 
-/*Members 
-
-channelIndex 
-   Contains the zero-based index of the channel within the associated stream. 
-
-isInput 
-   Contains the channel direction. This member is set to one for input (record) channels and to 
-   zero for output (playback) channels. 
-
-flags 
-   Contains a set of ﬂags as a bitwise-or combination of the following constants. 
-
-   TUSBAUDIO_CHANPROP_FLAG_VOLUME_MAPPED 
-      If this ﬂag is set then the Windows Audio volume control for the channel is mapped to the 
-      feature unit speciﬁed in featureUnitId. 
-   TUSBAUDIO_CHANPROP_FLAG_MUTE_MAPPED 
-      If this ﬂag is set then the Windows Audio mute control for the channel is mapped to the 
-      feature unit speciﬁed in featureUnitId. 
-
-featureUnitId 
-   Contains the ID of the feature unit within the audio function that is used by Windows Audio to 
-   control volume and/or mute of the channel. 
-
-   This ID has to be used as entityIDwhen calling the private API to send volume or mute 
-   control requests for this channel to the device. 
-
-   The ID is valid only if one of TUSBAUDIO_CHANPROP_FLAG_VOLUME_MAPPEDor 
-   TUSBAUDIO_CHANPROP_FLAG_MUTE_MAPPEDis set in the flagsmember. 
-
-featureUnitLogicalChannel 
-   Contains the logical channel number within the feature unit that corresponds with the channel. 
-
-   This number has to be used as channelOrMixerControlwhen calling the private API to 
-   send volume or mute control requests for this channel to the device. 
-
-volumeRangeMin 
-   Contains the minimum volume value that is supported by the channel. 
-
-   This ﬁeld is only valid if TUSBAUDIO_CHANPROP_FLAG_VOLUME_MAPPEDis set in the 
-   flagsmember. 
-
-volumeRangeMax 
-   Contains the maximum volume value that is supported by the channel. 
-
-   This ﬁeld is only valid if TUSBAUDIO_CHANPROP_FLAG_VOLUME_MAPPEDis set in the 
-   flagsmember. 
-
-volumeRangeStep 
-   Contains the step size for volume values supported for the channel. 
-
-   This ﬁeld is only valid if TUSBAUDIO_CHANPROP_FLAG_VOLUME_MAPPEDis set in the 
-   flagsmember. 
-
-channelNameString[TUSBAUDIO_MAX_STRDESC_STRLEN] 
-   Zero-terminated wide character string that describes the channel. The channel name is taken 
-   from the USB string descriptor if available or generated internally otherwise. 
-
-Comments 
-
-   The values that are returned in volumeRangeMin, volumeRangeMaxand 
-   volumeRangeStepare in the range as deﬁned by the USB Audio Class speciﬁcation 
-   (-127.9961 decibels to +127.9961 decibels in 1/256 decibel steps). 
-
-See Also 
-
-   TUSBAUDIO_GetChannelProperties (page 32) 
-   TUSBAUDIO_AudioControlRequestGet (page 37) 
-   TUSBAUDIO_AudioControlRequestSet (page 35) */
-
-/*TUsbAudioNotifyEvent 
-
-This enumeration type deﬁnes constants that identify notiﬁcation event messages issued by the 
-device or the driver. 
-
-Deﬁnition */
-typedef enum tagTUsbAudioNotifyEvent{ 
-   NotifyEvent_SampleRateChanged, 
-   NotifyEvent_StreamFormatChanged, 
-   NotifyEvent_AcNodeInterrupt, 
-   NotifyEvent_VolumeChanged, 
-   NotifyEvent_MuteChanged 
- } TUsbAudioNotifyEvent; 
-/*Entries 
-
-NotifyEvent_SampleRateChanged 
-   This event message is issued by the driver when the sample rate changes. This event belongs 
-   to the TUSBAUDIO_NOTIFY_CATEGORY_SAMPLE_RATE_CHANGEcategory. 
-
-   Data ﬁeld: No data ﬁeld is attached to this type of event. 
-
-NotifyEvent_StreamFormatChanged 
-   This event message is issued by the driver when the stream format changes. This event 
-   belongs to the TUSBAUDIO_NOTIFY_CATEGORY_STREAM_CHANGEcategory. 
-
-   Data ﬁeld: No data ﬁeld is attached to this type of event. 
-
-NotifyEvent_AcNodeInterrupt 
-   This event message is issued by an audio control node (unit) of the device. This event belongs 
-   to the TUSBAUDIO_NOTIFY_CATEGORY_AC_NODE_INTERRUPTcategory. 
-
-   Data ﬁeld: The data ﬁeld attached to this event contains the interrupt data message deﬁned by 
-   the USB audio class 2.0 speciﬁcation. The size of this message is 6 bytes. The data layout is 
-   deﬁned by the USB audio class 2.0 speciﬁcation. See also the 
-   T_UsbClsAudio20_AC_InterruptDataMessagestruct type deﬁned in 
-   tusb_cls_audio20.h. 
-
-NotifyEvent_VolumeChanged 
-   This event message is issued by the driver if the volume of a speciﬁc channel is changed 
-   through the Windows mixer API. For example, this happens if a user modiﬁes volume in the 
-   standard windows sound panel. This event belongs to the 
-   TUSBAUDIO_NOTIFY_CATEGORY_VOLUME_CHANGEcategory. 
-
-   Data ﬁeld: The data ﬁeld attached to this event contains a TUsbAudioNotifyVolumeChange 
-   structure. 
-
-NotifyEvent_MuteChanged 
-   This event message is issued by the driver if the mute state of a speciﬁc channel is changed 
-   through the Windows mixer API. For example, this happens if a user modiﬁes mute in the 
-   standard windows sound panel. This event belongs to the 
-   TUSBAUDIO_NOTIFY_CATEGORY_VOLUME_CHANGEcategory. 
-
-   Data ﬁeld: The data ﬁeld attached to this event contains a TUsbAudioNotifyVolumeChange 
-   structure. 
-
-Comments 
-
-   An application can ﬁlter event messages to be received by means of event categories. 
-   Categories are deﬁned by TUSBAUDIO_NOTIFY_CATEGORY_xxxconstants. See 
-   TUSBAUDIO_RegisterDeviceNotiﬁcation for more information. 
-
-See Also 
-
-   TUSBAUDIO_RegisterDeviceNotiﬁcation (page 19) 
-   TUSBAUDIO_ReadDeviceNotiﬁcation (page 21) 
-   TUsbAudioNotifyVolumeChange (page 66) */
-
-/*TUsbAudioDfuProcState 
-
-This enumeration type deﬁnes constants that indicate the current state of the DFU operation. 
-
-Deﬁnition */
-typedef enum tagTUsbAudioDfuProcState{ 
-   DfuProcState_Idle, 
-   DfuProcState_Initializing, 
-   DfuProcState_EnteringDfuMode, 
-   DfuProcState_InProgress, 
-   DfuProcState_EnteringAppMode, 
-   DfuProcState_Finished, 
-   DfuProcState_Failed 
- } TUsbAudioDfuProcState; 
-/*Entries 
-
-DfuProcState_Idle 
-   No DFU operation is in progress. 
-
-DfuProcState_Initializing 
-   The DFU operation is about to start. 
-
-DfuProcState_EnteringDfuMode 
-   The device is entering DFU mode (DFU ﬁrmware is about to be started). 
-
-DfuProcState_InProgress 
-   The DFU operation is in progress. 
-
-DfuProcState_EnteringAppMode 
-   The device is entering APP mode (application is about to be started). 
-
-DfuProcState_Finished 
-   The DFU operation has completed successfully. 
-
-DfuProcState_Failed 
-   The DFU operation has completed with error. 
-
-Comments 
-
-   An application calls TUSBAUDIO_GetDfuStatus to query the current state of the DFU 
-   operation. 
-
-See Also 
-
-   TUSBAUDIO_GetDfuStatus (page 61) */
-
-/*TUsbAudioDeviceRunMode 
-
-This enumeration type deﬁnes constants that indicate the ﬁrmware that is currently running on 
-the device. 
-
-Deﬁnition */
-typedef enum tagTUsbAudioDeviceRunMode{ 
-   DeviceRunMode_APP, 
-   DeviceRunMode_DFU 
- } TUsbAudioDeviceRunMode; 
-/*Entries 
-
-DeviceRunMode_APP 
-   The application ﬁrmware is running (APP mode). 
-
-DeviceRunMode_DFU 
-   The DFU ﬁrmware is running (DFU mode). 
-
-Comments 
-
-   An application calls TUSBAUDIO_GetDeviceUsbMode to query the ﬁrmware that is 
-   running on the device. 
-
-See Also 
-
-   TUSBAUDIO_GetDeviceUsbMode (page 48) */
-   
