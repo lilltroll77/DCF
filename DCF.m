@@ -1,10 +1,23 @@
 % Digital Current Feedback GUI for MATLAB 2010a <-> XMOS
 
 function DCF
-dll_path = 'C:\Thesycon\TUSBAudio_v1.22.0\EvaluationKit\DriverInstaller\release\';
+dll_path = 'C:\Thesycon\TUSBAudio_v1.22.0\EvaluationKit\DriverInstaller\debug\';
 h_path = 'C:\Thesycon\TUSBAudio_v1.22.0\EvaluationKit\DriverInstaller\release\DCF\';
-%[NOTFOUND, WARNINGS] = loadlibrary([dll_path 'tusbaudioapi.dll'],[h_path 'tusbaudioapi.h'] );
-%libfunctions('tusbaudioapi')
+if(libisloaded('tusbaudioapi'))
+unloadlibrary('tusbaudioapi');
+end
+if ((isdir(dll_path) && isdir(h_path))==0)
+    error('Paths was not found on this computer');
+end
+exist([dll_path 'tusbaudioapi.dll'],'file');
+
+[NOTFOUND, WARNINGS] = loadlibrary([dll_path 'tusbaudioapi.dll'],[h_path 'tusbaudioapi.h'] );
+libf=libfunctions('tusbaudioapi');
+ApiVersion=uint32(calllib('tusbaudioapi','TUSBAUDIO_GetApiVersion'));
+DeviceCount=uint32(calllib('tusbaudioapi','TUSBAUDIO_GetDeviceCount'));
+EnumerateDevices=calllib('tusbaudioapi','TUSBAUDIO_EnumerateDevices');
+
+struct
 
 main_windows_pos=[100 100 800 600];
 Z=zeros(128,1);
@@ -79,6 +92,12 @@ s_BPR = uicontrol(fh,'Style','slider',...
      'Callback',@edittext_LPf_callback);
   Position(2)=Position(2)+deltaPosition;
   
+
+      uicontrol(fh,'Style','text',...
+     'HorizontalAlignment','left',...
+     'String',sprintf('tusbaudioapi.dll\nAPI version = %x\nFound %d audio devices',ApiVersion,DeviceCount),...
+     'Position',[Position(1) 10 125 50]);
+  
   t_LC = uicontrol(fh,'Style','text',...
      'HorizontalAlignment','left',...
      'Position',[Position(1:2) 125 40],...
@@ -89,6 +108,7 @@ s_BPR = uicontrol(fh,'Style','slider',...
     'HorizontalAlignment','left',...
      'Position',[Position(1:2) 125 140],...
      'Callback',@edittext_LC_mcallback);
+
  
  
  Fmax=1500;
