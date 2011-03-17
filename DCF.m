@@ -1,7 +1,7 @@
 % Digital Current Feedback GUI for MATLAB 2010a <-> XMOS
 
 function DCF
-dll_path = 'C:\Thesycon\TUSBAudio_v1.22.0\EvaluationKit\DriverInstaller\debug\';
+dll_path = 'C:\Thesycon\TUSBAudio_v1.22.0\CustomizationKit\DriverInstaller\debug\';
 h_path = 'C:\Thesycon\TUSBAudio_v1.22.0\EvaluationKit\DriverInstaller\release\DCF\';
 if(libisloaded('tusbaudioapi'))
 unloadlibrary('tusbaudioapi');
@@ -10,14 +10,7 @@ if ((isdir(dll_path) && isdir(h_path))==0)
     error('Paths was not found on this computer');
 end
 exist([dll_path 'tusbaudioapi.dll'],'file');
-
-[NOTFOUND, WARNINGS] = loadlibrary([dll_path 'tusbaudioapi.dll'],[h_path 'tusbaudioapi.h'] );
-libf=libfunctions('tusbaudioapi');
-ApiVersion=uint32(calllib('tusbaudioapi','TUSBAUDIO_GetApiVersion'));
-DeviceCount=uint32(calllib('tusbaudioapi','TUSBAUDIO_GetDeviceCount'));
-EnumerateDevices=calllib('tusbaudioapi','TUSBAUDIO_EnumerateDevices');
-
-struct
+NULL=uint32(0);
 
 main_windows_pos=[100 100 800 600];
 Z=zeros(128,1);
@@ -31,6 +24,18 @@ fh = figure('Position',main_windows_pos,...
     'MenuBar','none',...
     'NumberTitle','off',...
     'Name','Digital Current Feedback');
+   
+  %lh_deviceArrivalEvent = addlistener(aec,'deviceArrivalEvent',@deviceArrivalEvent)
+  %lh_deviceRemovedEvent = addlistener(aec,'deviceRemovedEvent',@deviceRemovedEvent)
+
+[NOTFOUND, WARNINGS] = loadlibrary([dll_path 'tusbaudioapi.dll'],[h_path 'tusbaudioapi.h'] );
+libf=libfunctions('tusbaudioapi');
+ApiVersion=uint32(calllib('tusbaudioapi','TUSBAUDIO_GetApiVersion'));
+%TUsbAudioStatus=uint32(calllib('tusbaudioapi','TUSBAUDIO_RegisterPnpNotification',lh_deviceArrivalEvent,lh_deviceRemovedEvent,[],0,0))
+
+DeviceCount=uint32(calllib('tusbaudioapi','TUSBAUDIO_GetDeviceCount'));
+EnumerateDevices=calllib('tusbaudioapi','TUSBAUDIO_EnumerateDevices');
+
 
 s_BPfc = uicontrol(fh,'Style','slider',...
     'Max',120,'Min',10,'Value',50,...
@@ -95,8 +100,8 @@ s_BPR = uicontrol(fh,'Style','slider',...
 
       uicontrol(fh,'Style','text',...
      'HorizontalAlignment','left',...
-     'String',sprintf('tusbaudioapi.dll\nAPI version = %x\nFound %d audio devices',ApiVersion,DeviceCount),...
-     'Position',[Position(1) 10 125 50]);
+     'String',sprintf('tusbaudioapi.dll\nAPI version = %x\nFound %d audio devices\nEnumerated %d devices',ApiVersion,DeviceCount,EnumerateDevices),...
+     'Position',[Position(1) 10 125 75]);
   
   t_LC = uicontrol(fh,'Style','text',...
      'HorizontalAlignment','left',...

@@ -1,29 +1,26 @@
 ﻿/*
 
 Thesycon®  Systemsoftware & Consulting GmbH 
-
 TUSBAudio 
-
 USB Audio 2.0 Class Driver for Windows 
-
 Reference Manual 
 
 Version:      1.22.0 
 Date:         02 December 2010 
-
 Authors:      Udo Eberhardt 
               Frank Senf 
-
 Thesycon Systemsoftware & Consulting GmbH 
 Werner-von-Siemens-Str. 2 
 D-98693 Ilmenau 
 Germany 
-
 Tel: +49 3677 8462 0 
 Fax: +49 3677 8462 18 
-
 http://www.thesycon.de 
 */
+
+/*tusbaudioapi.dll loads conﬁguration information from custom.ini which must be present in the 
+same directory as the DLL itself. */
+
  #include <wchar.h> //added by MB
  typedef unsigned int TUsbAudioStatus; //added by MB
  typedef unsigned long* WCHAR; added by MB
